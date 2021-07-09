@@ -10,5 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: debug
+        run: ls -la
       - name: run tests
         run: go test ./... -v
