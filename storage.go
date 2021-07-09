@@ -1,4 +1,4 @@
-package storage
+package go_redis_crud
 
 import (
 	"github.com/go-redis/redis"

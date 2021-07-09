@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"go-redis-crud/storage"
+	"go_redis_crud"
 	"testing"
 )
 
@@ -12,7 +12,7 @@ type MockMapper struct {
 	mock.Mock
 }
 
-func (mm *MockMapper) Create(kv storage.KeyValue) error {
+func (mm *MockMapper) Create(kv go_redis_crud.KeyValue) error {
 	args := mm.Called(kv)
 	return args.Error(0)
 }
@@ -23,7 +23,7 @@ func (mm *MockMapper) Read(k interface{}) *interface{} {
 	return &value
 }
 
-func (mm *MockMapper) Update(kv storage.KeyValue) error {
+func (mm *MockMapper) Update(kv go_redis_crud.KeyValue) error {
 	args := mm.Called(kv)
 	return args.Error(0)
 }
@@ -33,7 +33,7 @@ func (mm *MockMapper) Delete(k interface{}) error {
 	return args.Error(0)
 }
 
-var testKeyValue = storage.KeyValue{Key: "test key 123", Value: "test value 654"}
+var testKeyValue = go_redis_crud.KeyValue{Key: "test key 123", Value: "test value 654"}
 var expectedKeyOrValue = struct {
 	Super interface{}
 }{

@@ -4,21 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis"
-	"go-redis-crud/storage"
+	"go_redis_crud"
 )
 
 type Mapper struct {
 	RDB *redis.Client
 }
 
-func (mapper *Mapper) Create(kv storage.KeyValue) error {
+func (mapper *Mapper) Create(kv go_redis_crud.KeyValue) error {
 	k := prepareKey(kv.Key)
 
 	value, err := json.Marshal(kv.Value)
-	storage.CheckErr(err)
+	go_redis_crud.CheckErr(err)
 
 	_, err = mapper.RDB.Set(k, value, 0).Result()
-	storage.CheckErr(err)
+	go_redis_crud.CheckErr(err)
 
 	if nil == err {
 		fmt.Println("[add] k:", k, "val:", string(value))
@@ -31,7 +31,7 @@ func (mapper *Mapper) Read(key interface{}) *interface{} {
 	k := prepareKey(key)
 
 	b, err := mapper.RDB.Get(k).Bytes()
-	storage.CheckErr(err)
+	go_redis_crud.CheckErr(err)
 
 	var value interface{}
 	err = json.Unmarshal(b, &value)
@@ -43,14 +43,14 @@ func (mapper *Mapper) Read(key interface{}) *interface{} {
 	return &value
 }
 
-func (mapper *Mapper) Update(kv storage.KeyValue) error {
+func (mapper *Mapper) Update(kv go_redis_crud.KeyValue) error {
 	k := prepareKey(kv.Key)
 
 	value, err := json.Marshal(kv.Value)
-	storage.CheckErr(err)
+	go_redis_crud.CheckErr(err)
 
 	_, err = mapper.RDB.Set(k, value, 0).Result()
-	storage.CheckErr(err)
+	go_redis_crud.CheckErr(err)
 
 	if nil == err {
 		fmt.Println("[update] k:", k, "val:", string(value))
@@ -63,7 +63,7 @@ func (mapper *Mapper) Delete(key interface{}) error {
 	k := prepareKey(key)
 
 	_, err := mapper.RDB.Del(k).Result()
-	storage.CheckErr(err)
+	go_redis_crud.CheckErr(err)
 
 	if nil == err {
 		fmt.Println("[delete] key:", k)
@@ -74,7 +74,7 @@ func (mapper *Mapper) Delete(key interface{}) error {
 
 func prepareKey(k interface{}) string {
 	key, err := json.Marshal(k)
-	storage.CheckErr(err)
+	go_redis_crud.CheckErr(err)
 
 	return string(key)
 }
