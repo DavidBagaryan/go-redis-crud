@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis"
-	"key-value-storage/storage"
+	"go-redis-crud/storage"
 )
 
 type Mapper struct {

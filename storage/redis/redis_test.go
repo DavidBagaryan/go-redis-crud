@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"key-value-storage/storage"
+	"go-redis-crud/storage"
 	"testing"
 )
 
