@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	"log"
+	"os"
+	"strconv"
 )
 
 const HOST = "localhost"
@@ -19,15 +21,20 @@ type Storage interface {
 }
 
 type KeyValue struct {
-	Key interface{}
+	Key   interface{}
 	Value interface{}
 }
 
 func Client() *redis.Client {
+	addr := getEnv("addr", fmt.Sprint(HOST, ":", PORT))
+	pwd := getEnv("pwd", PWD)
+	db := getEnv("db", strconv.Itoa(0))
+	dbInt, _ := strconv.Atoi(db)
+
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprint(HOST, ":", PORT),
-		Password: PWD,
-		DB:       DB,
+		Addr:     addr,
+		Password: pwd,
+		DB:       dbInt,
 	})
 
 	return rdb
@@ -37,4 +44,13 @@ func CheckErr(err error) {
 	if nil != err {
 		log.Print(err)
 	}
+}
+
+func getEnv(key string, fallback string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		value = fallback
+	}
+
+	return value
 }

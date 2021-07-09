@@ -118,3 +118,8 @@ func TestClient(t *testing.T) {
 func TestCheckErr(t *testing.T) {
 	CheckErr(errors.New("test err msg")) // todo check stdout
 }
+
+func TestGetEnv(t *testing.T) {
+	r := getEnv("wrong_key", "fallback")
+	assert.Equalf(t, "fallback", r, "internal getEnv retrieves wrong value")
+}
