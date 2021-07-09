@@ -8,7 +8,7 @@ import (
 
 type Storage interface {
 	Create(keyValue KeyValue) error
-	Read(key interface{}) *interface{}
+	Read(key interface{}) interface{}
 	Update(keyValue KeyValue) error
 	Delete(key interface{}) error
 }

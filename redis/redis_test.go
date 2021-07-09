@@ -17,10 +17,9 @@ func (mm *MockMapper) Create(kv go_redis_crud.KeyValue) error {
 	return args.Error(0)
 }
 
-func (mm *MockMapper) Read(k interface{}) *interface{} {
+func (mm *MockMapper) Read(k interface{}) interface{} {
 	args := mm.Called(k)
-	value := args.Get(0)
-	return &value
+	return args.Get(0)
 }
 
 func (mm *MockMapper) Update(kv go_redis_crud.KeyValue) error {

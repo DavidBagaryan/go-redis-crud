@@ -5,13 +5,25 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	"go_redis_crud"
+	"sync"
 )
 
-type Mapper struct {
-	RDB *redis.Client
+type mapper struct {
+	RDBMutex *sync.Mutex
+	RDB      *redis.Client
 }
 
-func (mapper *Mapper) Create(kv go_redis_crud.KeyValue) error {
+func New(addr string, pwd string, db int) *mapper {
+	return &mapper{
+		RDB:      go_redis_crud.Client(addr, pwd, db),
+		RDBMutex: new(sync.Mutex),
+	}
+}
+
+func (mapper *mapper) Create(kv go_redis_crud.KeyValue) error {
+	mapper.RDBMutex.Lock()
+	defer mapper.RDBMutex.Unlock()
+
 	k := prepareKey(kv.Key)
 
 	value, err := json.Marshal(kv.Value)
@@ -27,23 +39,29 @@ func (mapper *Mapper) Create(kv go_redis_crud.KeyValue) error {
 	return err
 }
 
-func (mapper *Mapper) Read(key interface{}) *interface{} {
+func (mapper *mapper) Read(key interface{}) interface{} {
+	mapper.RDBMutex.Lock()
+	defer mapper.RDBMutex.Unlock()
+
 	k := prepareKey(key)
 
 	b, err := mapper.RDB.Get(k).Bytes()
 	go_redis_crud.CheckErr(err)
 
 	var value interface{}
-	err = json.Unmarshal(b, &value)
+	go_redis_crud.CheckErr(json.Unmarshal(b, &value))
 
 	if nil == err {
 		fmt.Println("[read] key:", key, "val:", value)
 	}
 
-	return &value
+	return value
 }
 
-func (mapper *Mapper) Update(kv go_redis_crud.KeyValue) error {
+func (mapper *mapper) Update(kv go_redis_crud.KeyValue) error {
+	mapper.RDBMutex.Lock()
+	defer mapper.RDBMutex.Unlock()
+
 	k := prepareKey(kv.Key)
 
 	value, err := json.Marshal(kv.Value)
@@ -59,7 +77,10 @@ func (mapper *Mapper) Update(kv go_redis_crud.KeyValue) error {
 	return err
 }
 
-func (mapper *Mapper) Delete(key interface{}) error {
+func (mapper *mapper) Delete(key interface{}) error {
+	mapper.RDBMutex.Lock()
+	defer mapper.RDBMutex.Unlock()
+
 	k := prepareKey(key)
 
 	_, err := mapper.RDB.Del(k).Result()
