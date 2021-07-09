@@ -1,4 +1,4 @@
-module key-value-storage
+module go-redis-crud
 
 go 1.15
 

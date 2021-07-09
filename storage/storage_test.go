@@ -2,7 +2,6 @@ package storage
 
 import (
 	"errors"
-	"github.com/go-redis/redis"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -103,12 +102,7 @@ func TestModel_Struct(t *testing.T) {
 
 func TestClient(t *testing.T) {
 	fakeAddr, fakePwd, fakeDB := "fakehost:666", "a_fake_pwd", 9876543210
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     fakeAddr,
-		Password: fakePwd,
-		DB:       fakeDB,
-	})
-
+	rdb := Client(fakeAddr, fakePwd, fakeDB)
 	opts := rdb.Options()
 	assert.Equal(t, opts.Addr, fakeAddr, "wrong host")
 	assert.Equal(t, opts.Password, fakePwd, "wrong password")
