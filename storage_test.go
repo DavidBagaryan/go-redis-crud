@@ -100,20 +100,6 @@ func TestModel_Struct(t *testing.T) {
 	assert.Equalf(t, value, kv.Value, valueNotEqual)
 }
 
-func TestClient(t *testing.T) {
-	fakeAddr, fakePwd, fakeDB := "fakehost:666", "a_fake_pwd", 9876543210
-	rdb := Client(fakeAddr, fakePwd, fakeDB)
-	opts := rdb.Options()
-	assert.Equal(t, opts.Addr, fakeAddr, "wrong host")
-	assert.Equal(t, opts.Password, fakePwd, "wrong password")
-	assert.Equal(t, opts.DB, fakeDB, "wrong db")
-}
-
 func TestCheckErr(t *testing.T) {
 	CheckErr(errors.New("test err msg")) // todo check stdout
-}
-
-func TestGetEnv(t *testing.T) {
-	r := getEnv("wrong_key", "fallback")
-	assert.Equalf(t, "fallback", r, "internal getEnv retrieves wrong value")
 }
