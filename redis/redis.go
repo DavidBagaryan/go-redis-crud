@@ -11,14 +11,21 @@ import (
 )
 
 type mapper struct {
-	RDBMutex *sync.RWMutex
-	RDB      *redis.Client
+	rdbMutex *sync.RWMutex
+	rdb      *redis.Client
 }
 
 func New(addr string, pwd string, db int) *mapper {
 	return &mapper{
-		RDB:      redisClient(addr, pwd, db),
-		RDBMutex: new(sync.RWMutex),
+		rdb:      redisClient(addr, pwd, db),
+		rdbMutex: new(sync.RWMutex),
+	}
+}
+
+func (mapper *mapper) Close() {
+	err := mapper.rdb.Close()
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
@@ -89,10 +96,10 @@ func (mapper *mapper) Delete(key interface{}) (string, error) {
 		return "", errors.New("[delete] not found: " + k)
 	}
 
-	mapper.RDBMutex.Lock()
-	defer mapper.RDBMutex.Unlock()
+	mapper.rdbMutex.Lock()
+	defer mapper.rdbMutex.Unlock()
 
-	_, err = mapper.RDB.Del(k).Result()
+	_, err = mapper.rdb.Del(k).Result()
 	if nil != err {
 		return "", err
 	}
@@ -103,8 +110,8 @@ func (mapper *mapper) Delete(key interface{}) (string, error) {
 // set Uses redis SET function to creates OR updates an element
 // set retrieves an err if exists and wrote stringify key/value
 func (mapper *mapper) set(kv go_redis_crud.KeyValue) (string, string, error) {
-	mapper.RDBMutex.Lock()
-	defer mapper.RDBMutex.Unlock()
+	mapper.rdbMutex.Lock()
+	defer mapper.rdbMutex.Unlock()
 
 	k := prepare(kv.Key)
 
@@ -113,7 +120,7 @@ func (mapper *mapper) set(kv go_redis_crud.KeyValue) (string, string, error) {
 		return "", "", err
 	}
 
-	_, err = mapper.RDB.Set(k, value, 0).Result()
+	_, err = mapper.rdb.Set(k, value, 0).Result()
 	if nil != err {
 		return "", "", err
 	}
@@ -123,10 +130,10 @@ func (mapper *mapper) set(kv go_redis_crud.KeyValue) (string, string, error) {
 
 // find an element from redis dict
 func (mapper *mapper) find(key interface{}) ([]byte, error) {
-	mapper.RDBMutex.RLock()
-	defer mapper.RDBMutex.RUnlock()
+	mapper.rdbMutex.RLock()
+	defer mapper.rdbMutex.RUnlock()
 
-	return mapper.RDB.Get(prepare(key)).Bytes()
+	return mapper.rdb.Get(prepare(key)).Bytes()
 }
 
 // prepare Key/Value preparation for CRUD or represent

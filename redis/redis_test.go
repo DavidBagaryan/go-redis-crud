@@ -107,6 +107,7 @@ func TestMapper_Delete(t *testing.T) {
 	assert.Nil(t, err)
 	mm.AssertExpectations(t)
 }
+
 func TestMapper_DeleteErr(t *testing.T) {
 	mm := new(MockMapper)
 	mm.On("Delete", testKeyValue).Return("", errors.New("test err"))
