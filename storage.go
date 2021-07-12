@@ -1,9 +1,5 @@
 package go_redis_crud
 
-import (
-	"log"
-)
-
 // Storage base abstraction to implement any other in-memory DB CRUD integration
 type Storage interface {
 	Create(keyValue KeyValue) error
@@ -16,11 +12,4 @@ type Storage interface {
 type KeyValue struct {
 	Key   interface{}
 	Value interface{}
-}
-
-// CheckErr func prints an err to log output
-func CheckErr(err error) {
-	if nil != err {
-		log.Print(err)
-	}
 }

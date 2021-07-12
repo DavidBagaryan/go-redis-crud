@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-redis/redis"
 	"go_redis_crud"
+	"log"
 	"sync"
 )
 
@@ -23,29 +24,27 @@ func New(addr string, pwd string, db int) *mapper {
 
 // RedisClient func connects to Redis server
 func redisClient(addr string, pwd string, db int) *redis.Client {
-	rdb := redis.NewClient(&redis.Options{
+	return redis.NewClient(&redis.Options{
 		Addr:     addr,
 		Password: pwd,
 		DB:       db,
 	})
-
-	return rdb
 }
 
 // Create a new element in dict
-func (mapper *mapper) Create(kv go_redis_crud.KeyValue) error {
-	found, _ := mapper.find(kv.Key)
-	if found != nil {
-		return errors.New(fmt.Sprint("[create] already exists: ", kv.Key))
+func (mapper *mapper) Create(kv go_redis_crud.KeyValue) (string, error) {
+	_, err := mapper.find(kv.Key)
+	if nil == err {
+		return "", errors.New(fmt.Sprint("[create] already exists: ", prepare(kv.Key)))
 	}
 
-	err, key, value := mapper.set(kv)
+	key, value, err := mapper.set(kv)
 
 	if nil == err {
-		fmt.Println("[create] k:", key, "val:", value)
+		return fmt.Sprint("[create] k:", prepare(key), "val:", prepare(value)), nil
 	}
 
-	return err
+	return "", err
 }
 
 // Read element from dict by key
@@ -53,70 +52,73 @@ func (mapper *mapper) Create(kv go_redis_crud.KeyValue) error {
 func (mapper *mapper) Read(key interface{}) (interface{}, error) {
 	b, err := mapper.find(key)
 	if err != nil {
-		return struct{}{}, errors.New(fmt.Sprint("[read] not found: ", key))
+		return struct{}{}, errors.New(fmt.Sprint("[read] not found: ", prepare(key)))
 	}
 
 	var value interface{}
-	go_redis_crud.CheckErr(json.Unmarshal(b, &value))
+	err = json.Unmarshal(b, &value)
+	if nil != err {
+		return struct{}{}, err
+	}
 
-	fmt.Println("[read] key:", key, "val:", value)
-
-	return value, nil
+	return fmt.Sprint("[read] key:", prepare(key), " val:", prepare(value)), nil
 }
 
 // Update element in dict by key
-func (mapper *mapper) Update(kv go_redis_crud.KeyValue) error {
+func (mapper *mapper) Update(kv go_redis_crud.KeyValue) (string, error) {
 	_, err := mapper.find(kv.Key)
 	if err != nil {
-		return errors.New(fmt.Sprint("[update] not found: ", kv.Key))
+		return "", errors.New(fmt.Sprint("[update] not found: ", prepare(kv.Key)))
 	}
 
-	err, key, value := mapper.set(kv)
+	key, value, err := mapper.set(kv)
 
 	if nil == err {
-		fmt.Println("[update] k:", key, "val:", value)
+		return fmt.Sprint("[update] k:", prepare(key), "val:", prepare(value)), nil
 	}
 
-	return err
+	return "", err
 }
 
 // Delete element from dict
-func (mapper *mapper) Delete(key interface{}) error {
+func (mapper *mapper) Delete(key interface{}) (string, error) {
 	k := prepare(key)
 
 	_, err := mapper.find(key)
 	if err != nil {
-		return errors.New("[delete] not found: " + k)
+		return "", errors.New("[delete] not found: " + k)
 	}
 
 	mapper.RDBMutex.Lock()
 	defer mapper.RDBMutex.Unlock()
 
 	_, err = mapper.RDB.Del(k).Result()
-	go_redis_crud.CheckErr(err)
-
-	if nil == err {
-		fmt.Println("[delete] key:", k)
+	if nil != err {
+		return "", err
 	}
 
-	return err
+	return fmt.Sprint("[delete] key:", prepare(k)), nil
 }
 
 // set Uses redis SET function to creates OR updates an element
 // set retrieves an err if exists and wrote stringify key/value
-func (mapper *mapper) set(kv go_redis_crud.KeyValue) (error, string, string) {
+func (mapper *mapper) set(kv go_redis_crud.KeyValue) (string, string, error) {
 	mapper.RDBMutex.Lock()
 	defer mapper.RDBMutex.Unlock()
 
 	k := prepare(kv.Key)
 
 	value, err := json.Marshal(kv.Value)
-	go_redis_crud.CheckErr(err)
+	if nil != err {
+		return "", "", err
+	}
 
 	_, err = mapper.RDB.Set(k, value, 0).Result()
-	go_redis_crud.CheckErr(err)
+	if nil != err {
+		return "", "", err
+	}
 
-	return err, k, prepare(kv.Value)
+	return k, prepare(kv.Value), err
 }
 
 // find an element from redis dict
@@ -129,13 +131,15 @@ func (mapper *mapper) find(key interface{}) ([]byte, error) {
 
 // prepare Key/Value preparation for CRUD or represent
 // special case on string to NOT add extra ""
-func prepare(val interface{}) string {
-	switch val.(type) {
+func prepare(value interface{}) string {
+	switch value.(type) {
 	case string:
-		return fmt.Sprint(val)
+		return fmt.Sprint(value)
 	default:
-		k, err := json.Marshal(val)
-		go_redis_crud.CheckErr(err)
+		k, err := json.Marshal(value)
+		if nil != err {
+			log.Fatalln(err)
+		}
 
 		return string(k)
 	}

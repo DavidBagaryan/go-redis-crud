@@ -15,12 +15,16 @@ import (
 	"fmt"
 	"go_redis_crud"
 	"go_redis_crud/redis"
+	"log"
 )
 
 func main() {
 	mapper := redis.New("localhost:6379", "", 0)
 	defer func() {
-		go_redis_crud.CheckErr(mapper.RDB.Close())
+		err := mapper.RDB.Close()
+		if nil != err {
+			log.Fatalln(err)
+		}
 	}()
 
 	bobbaKeyValue := go_redis_crud.KeyValue{
@@ -28,17 +32,27 @@ func main() {
 		Value: struct{ Jedy string }{Jedy: "are dead 😵"},
 	}
 
-	go_redis_crud.CheckErr(mapper.Create(bobbaKeyValue))
+	bobbaRes, err := mapper.Create(bobbaKeyValue)
+	fmt.Println(bobbaRes)
+	if nil != err {
+		fmt.Println(err)
+	}
 
 	jangoKeyValue := go_redis_crud.KeyValue{
 		Key:   struct{ Jango string }{Jango: "Fett"},
 		Value: struct{ Syth string }{Syth: "POWER UNLIMITED! 🍪"},
 	}
 
-	go_redis_crud.CheckErr(mapper.Create(jangoKeyValue))
+	jangoRes, err := mapper.Create(jangoKeyValue)
+	fmt.Println(jangoRes)
+	if nil != err {
+		fmt.Println(err)
+	}
 
-	bobbaKey := mapper.Read(struct{ Bobba string }{Bobba: "Fett"})
-	fmt.Println(bobbaKey)
+	bobbaValue, err := mapper.Read(struct{ Bobba string }{Bobba: "Fett"})
+	fmt.Println(bobbaValue)
+	if nil != err {
+		fmt.Println(err)
+	}
 }
-
 ```

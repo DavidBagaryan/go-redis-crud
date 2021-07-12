@@ -1,7 +1,6 @@
 package go_redis_crud
 
 import (
-	"errors"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -98,8 +97,4 @@ func TestModel_Struct(t *testing.T) {
 
 	assert.IsType(t, struct{ ValueProp int }{}, kv.Value, valueWrongType+expectedType)
 	assert.Equalf(t, value, kv.Value, valueNotEqual)
-}
-
-func TestCheckErr(t *testing.T) {
-	CheckErr(errors.New("test err msg")) // todo check stdout
 }
