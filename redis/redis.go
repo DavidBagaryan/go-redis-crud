@@ -17,7 +17,7 @@ type mapper struct {
 func New(addr string, pwd string, db int) *mapper {
 	return &mapper{
 		RDB:      redisClient(addr, pwd, db),
-		RDBMutex: new(sync.RWMutex),
+		RDBMutex:      new(sync.RWMutex),
 	}
 }
 
