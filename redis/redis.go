@@ -11,7 +11,7 @@ import (
 
 type mapper struct {
 	RDBMutex *sync.RWMutex
-	RDB           *redis.Client
+	RDB      *redis.Client
 }
 
 func New(addr string, pwd string, db int) *mapper {
