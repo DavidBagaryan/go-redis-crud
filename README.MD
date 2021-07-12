@@ -15,17 +15,11 @@ import (
 	"fmt"
 	"go_redis_crud"
 	"go_redis_crud/redis"
-	"log"
 )
 
 func main() {
 	mapper := redis.New("localhost:6379", "", 0)
-	defer func() {
-		err := mapper.RDB.Close()
-		if nil != err {
-			log.Fatalln(err)
-		}
-	}()
+	defer mapper.Close()
 
 	bobbaKeyValue := go_redis_crud.KeyValue{
 		Key:   struct{ Bobba string }{Bobba: "Fett"},
