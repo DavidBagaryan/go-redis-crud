@@ -22,5 +22,16 @@ jobs:
         uses: actions/checkout@v2
       - name: Test
         run: go test ./...
-      - name: Code style
-        run: go fmt ./...
+      - name: Code formatting
+        run: gofmt -s -w .
+      - name: Check for modified files
+        id: git-check
+        run: echo ::set-output name=modified::$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)
+      - name: Push changes
+        if: steps.git-check.outputs.modified == 'true'
+        run: |
+          git config --global user.name 'David Bagaryan'
+          git config --global user.email 'dave.bagaron@yandex.ru'
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git commit -am "Automated changes"
+          git push
